@@ -71,12 +71,14 @@ transformationApply w f t (k, m) =  mmap (substitute w m ) (match w k t)
 
 transformationsApply :: Eq a => a -> ([a] -> [a]) -> [([a], [a])] -> [a] -> Maybe [a]
 transformationsApply _ _ [] _ = Nothing
-transformationsApply w f (k:ks) t
+transformationsApply w f (k:ks) t --  = orElse (map (transformationApply w f t) k)
     | trans == Nothing = transformationsApply w f ks t
     | otherwise = trans
     where trans = transformationApply w f t k
 
+
 -- frenchPresentation = ("My name is *", "Je m'appelle *")
+-- transformationApply '*' id "My name is Zacharias" frenchPresentation
 
 type Phrase = [String]
 type PhrasePair = (Phrase, Phrase)
@@ -103,5 +105,8 @@ reflections =
 
 reflect :: Phrase -> Phrase
 reflect = map (try (flip lookup reflections) )
+
+rulesApply :: [PhrasePair] -> Phrase -> Phrase
+rulesApply = try . transformationsApply "*" reflect
 
 -- reflect ["i", "will", "never", "see", "my", "reflection", "in", "your", "eyes"]
