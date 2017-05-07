@@ -1,0 +1,6 @@
+b)
+attachHeads takes a pair of characters that are to be heads of a pair of lists,
+insert these characters as the heads of every pair of list which is passed as
+the third argument.
+
+'a' '-' [("bc", "bc")] = [("abc", "-bc")] for example
