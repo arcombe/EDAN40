@@ -40,3 +40,36 @@ module StringAlignment where
     attachHeads '-' y (optAlignments (x:xs) ys)
     )
       where tupleArgFunc f (arg1, arg2) = f arg1 arg2
+
+  optAlignmentsMemoized :: String -> String -> [AlignmentType]
+  optAlignmentsMemoized str1 str2 = map (\(res1,res2) -> (reverse res1, reverse res2)) $ snd $ opt (length str1) (length str2)
+    where
+      opt :: Int -> Int -> (Int, [AlignmentType])
+      opt i j = table!!i!!j
+
+      table = [ [entry i j | j<-[0..]] | i<-[0..] ]
+
+      entry :: Int -> Int -> (Int, [AlignmentType])
+      entry 0 0 = (0, [("","")])
+      entry i 0 = (i*scoreSpace, [(take i str1, replicate i '-')])
+      entry 0 j = (j*scoreSpace, [(replicate j '-', take j str2)])
+      entry i j = (fst (head bestSteps), concat $ map snd bestSteps )
+        where
+          bestSteps = maximaBy fst [up, left, diag]
+
+          ci = str1!!(i-1)
+          cj = str2!!(j-1)
+
+          up = updateScore (updateAlignments (opt (i-1) j) ci '-') (score ci '-')
+          left = updateScore (updateAlignments (opt i (j-1)) '-' cj) (score '-' cj)
+          diag = updateScore (updateAlignments (opt (i-1) (j-1)) ci cj) (score ci cj)
+          updateScore :: (Int, [AlignmentType]) -> Int -> (Int, [AlignmentType])
+          updateScore e s = (fst e + s, snd e )
+          updateAlignments :: (Int, [AlignmentType]) -> Char -> Char -> (Int, [AlignmentType])
+          updateAlignments e h1 h2 = (fst e, attachHeads h1 h2 (snd e))
+
+  outputOptAlignments :: String -> String -> IO()
+  outputOptAlignments str1 str2 = do
+    let alignments = optAlignmentsMemoized str1 str2
+    putStrLn ("There are " ++ show (length alignments) ++  " optimal alignments:")
+    mapM_ (\(f,s) -> (putStrLn ("\n"++f++"\n"++s))) alignments
