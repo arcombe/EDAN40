@@ -81,7 +81,7 @@ value (Div lhs rhs) d =
   case rhsVal of
     0 -> error "Division by zero!"
     _ -> div (value lhs d) rhsVal
-  where rhsVal = (value rhs d)
+  where rhsVal = value rhs d
 
 
 instance Parse Expr where
