@@ -1,6 +1,12 @@
 b)
-attachHeads takes a pair of characters that are to be heads of a pair of lists,
-insert these characters as the heads of every pair of list which is passed as
-the third argument.
+attachHeads :: a -> a -> [([a],[a])] -> [([a],[a])]
+attachHeads h1 h2 aList = [(h1:xs,h2:ys) | (xs,ys) <- aList]
 
-'a' '-' [("bc", "bc")] = [("abc", "-bc")] for example
+The attachHeads function takes to 3 arguments 2 single objects and a list
+of tuples with lists, all of the same types. It then putes the tuple one at a time in
+(xs, ys) and sets h1 and h2 in the head of the lists in the tuples. Then returns
+the new list with tuples containing lists that all have the head h1 and h2.
+
+Example:
+attachHeads "al" "ex" [(["hej"], ["då"]),(["hej"],["igen"])]
+returns [(["alhej"], ["exdå"]),(["alhej"],["exigen"])]
