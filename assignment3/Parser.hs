@@ -47,7 +47,7 @@ accept w = (token (chars (length w))) ? (==w)
 require :: String -> Parser String
 require w = accept w ! reqerror w
   where reqerror w cs = error ("Program error: Missing " ++ w ++ " near " ++ cs)
-
+-- require w = accept w ! err "Program error: Missing " w
 
 lit :: Char -> Parser Char
 lit c = token char ? (==c)
