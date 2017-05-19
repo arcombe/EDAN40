@@ -51,7 +51,24 @@ exec (While cond stmt : stmts) dict input =
 exec (Read str : stmts) dict (input:inputs) = exec stmts (Dictionary.insert (str, input) dict) inputs
 exec (Write ex : stmts) dict input = Expr.value ex dict : exec stmts dict input
 
+indentation :: Int -> [Char]
+indentation 0 = []
+indentation n = "  " ++ indentation (n - 1)
+
+
+toString' :: Int -> T -> String
+toString' ind (Assignment str ex) = indentation ind ++ str ++ " := " ++ Expr.toString ex ++ ";\n"
+toString' ind (If cond thenStmts elseStmts) =  indentation ind ++ "if " ++ Expr.toString cond ++ " then \n" ++
+                                            toString' (ind + 1) thenStmts ++ indentation ind ++ "else \n" ++
+                                            toString' (ind + 1) elseStmts
+toString' ind (Skip) = indentation ind ++ "skip; \n"
+toString' ind (Block stmts) = indentation ind ++ "begin \n" ++ concat (map (toString' (ind+1)) stmts) ++ indentation ind ++ "end \n"
+toString' ind (While cond stmts) = indentation ind ++ "while " ++ Expr.toString cond ++ " do \n" ++
+                                  toString' (ind + 1) stmts
+toString' ind (Read str) = indentation ind ++ "read " ++ str ++ "; \n"
+toString' ind (Write ex) = indentation ind ++ "write " ++ Expr.toString ex ++ "; \n"
+
 
 instance Parse Statement where
   parse = assignment ! skip ! block ! if' ! while ! read' ! write
-  toString = error "Statement.toString not implemented"
+  toString = toString' 0
