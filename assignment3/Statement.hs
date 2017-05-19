@@ -11,7 +11,8 @@ data Statement =
     Block [Statement] |
     While Expr.T Statement |
     Read String |
-    Write Expr.T
+    Write Expr.T |
+    Comment String
     deriving Show
 
 assignment = word #- accept ":=" # Expr.parse #- require ";" >-> buildAss
@@ -24,16 +25,19 @@ skip = accept "skip" # require ";" >-> buildSkip
 buildSkip _ = Skip
 
 block = accept "begin" -# iter parse #- require "end" >-> buildBlock
-buildBlock st = Block st
+buildBlock = Block
 
 while = accept "while" -# Expr.parse # require "do" -# parse >-> buildWhile
 buildWhile (ex, st) = While ex st
 
 read' = accept "read" -# word #- require ";" >-> buildRead
-buildRead str = Read str
+buildRead = Read
 
 write = accept "write" -# Expr.parse #- require ";" >-> buildWrite
-buildWrite ex = Write ex
+buildWrite = Write
+
+comment = accept "--" -# untilNewLine #- require "\n" >-> buildComment
+buildComment = Comment
 
 exec :: [T] -> Dictionary.T String Integer -> [Integer] -> [Integer]
 exec [] _ _ = []
@@ -50,6 +54,7 @@ exec (While cond stmt : stmts) dict input =
       else exec stmts dict input
 exec (Read str : stmts) dict (input:inputs) = exec stmts (Dictionary.insert (str, input) dict) inputs
 exec (Write ex : stmts) dict input = Expr.value ex dict : exec stmts dict input
+exec (Comment s : stmts) dict input = exec stmts dict input
 
 indentation :: Int -> [Char]
 indentation 0 = []
@@ -67,8 +72,9 @@ toString' ind (While cond stmts) = indentation ind ++ "while " ++ Expr.toString 
                                   toString' (ind + 1) stmts
 toString' ind (Read str) = indentation ind ++ "read " ++ str ++ "; \n"
 toString' ind (Write ex) = indentation ind ++ "write " ++ Expr.toString ex ++ "; \n"
+toString' ind (Comment str) = indentation ind ++ "-- " ++ str ++ "\n"
 
 
 instance Parse Statement where
-  parse = assignment ! skip ! block ! if' ! while ! read' ! write
+  parse = assignment ! skip ! block ! if' ! while ! read' ! write ! comment
   toString = toString' 0
