@@ -63,3 +63,4 @@ p4 = fromString  ("\
 \write a;")
 
 rp4 = Program.exec p4 [4,4]
+sp4 = putStr (toString p4)
